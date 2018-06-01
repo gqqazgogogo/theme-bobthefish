@@ -59,10 +59,10 @@ end
 function __bobthefish_git_branch -S -d 'Get the current git branch (or commitish)'
   set -l ref (command git symbolic-ref HEAD 2>/dev/null); and begin
     [ "$theme_display_git_master_branch" != 'yes' -a "$ref" = 'refs/heads/master' ]
-      and echo $branch_glyph
+      and echo $branch_glyph(__git_hash_info)
       and return
 
-    string replace 'refs/heads/' "$branch_glyph " $ref
+    string replace 'refs/heads/' "$branch_glyph"(__git_hash_info)" " $ref
       and return
   end
 
@@ -552,9 +552,11 @@ function __bobthefish_prompt_user -S -d 'Display current user and hostname'
   [ "$theme_display_hostname" = 'yes' -o \( "$theme_display_hostname" != 'no' -a -n "$SSH_CLIENT" \) ]
     and set -l display_hostname
 
+  set -l current_color (__pick_color)
+
   if set -q display_user
-    __bobthefish_start_segment $color_username
-    echo -ns (whoami)
+    __bobthefish_start_segment $current_color '#111111' --bold
+    echo -ns (__pick_unicode)(whoami)
   end
 
   if set -q display_hostname
@@ -562,7 +564,7 @@ function __bobthefish_prompt_user -S -d 'Display current user and hostname'
       # reset colors without starting a new segment...
       # (so we can have a bold username and non-bold hostname)
       set_color normal
-      set_color -b $color_hostname[1] $color_hostname[2..-1]
+      set_color -b $current_color '#eeeeee' --bold
       echo -ns '@' (prompt_hostname)
     else
       __bobthefish_start_segment $color_hostname
@@ -785,7 +787,7 @@ function __bobthefish_prompt_git -S -a current_dir -d 'Display the actual git st
   __bobthefish_path_segment $current_dir
 
   __bobthefish_start_segment $flag_colors
-  echo -ns (__bobthefish_git_branch) $flags ' '
+  echo -ns  (__bobthefish_git_branch) $flags ' '
   set_color normal
 
   if [ "$theme_git_worktree_support" != 'yes' ]
@@ -863,7 +865,6 @@ function __bobthefish_prompt_dir -S -d 'Display a shortened form of the current 
   __bobthefish_path_segment "$PWD"
 end
 
-
 # ==============================
 # Apply theme
 # ==============================
@@ -919,4 +920,28 @@ function fish_prompt -d 'bobthefish, a fish theme optimized for awesome'
   end
 
   __bobthefish_finish_segments
+end
+
+set -x gsy_red    '#ef5350'
+set -x gsy_orange '#ffa726'
+set -x gsy_yellow '#fdd835'
+set -x gsy_green  '#9ccc65'
+set -x gsy_blue   '#42a5f5'
+set -x gsy_indigo '#5c6bc0'
+set -x gsy_purple '#ab47bc'
+set -x gsy_cyan   '#4dd0e1'
+set -x gsy_teal   '#4db6ac'
+set -x gsy_pink   '#ec407a'
+set -x gsy_colors $gsy_red $gsy_orange $gsy_yellow $gsy_green $gsy_blue $gsy_indigo $gsy_purple $gsy_cyan $gsy_teal $gsy_pink
+function __pick_color
+  echo (random choice $gsy_colors)
+end
+
+set -x gsy_emoji 💩 🐦 🚀 🐞 🎨 🍕 🐭 👽 ☕️ 🔬 💀 🐷 🐼 🐶 🐸 🐧 🐳 🍔 🍣 🍻 🔮 💰 💎 💾 💜 🍪 🌞 🌍 🐌 🐓 🍄
+function __pick_unicode
+  echo -ns (random choice $gsy_emoji)
+end
+
+function __git_hash_info
+  echo -n (git log --pretty=format:"%h" -1 2> /dev/null) 
 end
