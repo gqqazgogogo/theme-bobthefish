@@ -552,24 +552,47 @@ function __bobthefish_prompt_user -S -d 'Display current user and hostname'
   [ "$theme_display_hostname" = 'yes' -o \( "$theme_display_hostname" != 'no' -a -n "$SSH_CLIENT" \) ]
     and set -l display_hostname
 
-  set -l current_color (__pick_color)
+  if [ "$theme_userhost_random_bg" = 'no' ]
 
-  if set -q display_user
-    __bobthefish_start_segment $current_color '#111111' --bold
-    echo -ns (__pick_unicode)(whoami)
-  end
-
-  if set -q display_hostname
     if set -q display_user
-      # reset colors without starting a new segment...
-      # (so we can have a bold username and non-bold hostname)
-      set_color normal
-      set_color -b $current_color '#eeeeee' --bold
-      echo -ns '@' (prompt_hostname)
-    else
-      __bobthefish_start_segment $color_hostname
-      echo -ns (prompt_hostname)
+      __bobthefish_start_segment $color_username
+      echo -ns (whoami)
     end
+
+    if set -q display_hostname
+      if set -q display_user
+        # reset colors without starting a new segment...
+        # (so we can have a bold username and non-bold hostname)
+        set_color normal
+        set_color -b $color_hostname[1] $color_hostname[2..-1]
+        echo -ns '@' (prompt_hostname)
+      else
+        __bobthefish_start_segment $color_hostname
+        echo -ns (prompt_hostname)
+      end
+    end
+
+  else 
+
+    set -l current_color (__pick_color)
+    if set -q display_user
+      __bobthefish_start_segment $current_color '#111111' --bold
+      echo -ns (__pick_unicode)(whoami)
+    end
+
+    if set -q display_hostname
+      if set -q display_user
+        # reset colors without starting a new segment...
+        # (so we can have a bold username and non-bold hostname)
+        set_color normal
+        set_color -b $current_color '#eeeeee' --bold
+        echo -ns '@' (prompt_hostname)
+      else
+        __bobthefish_start_segment $color_hostname
+        echo -ns (prompt_hostname)
+      end
+    end
+
   end
 
   set -q display_user
@@ -939,9 +962,17 @@ end
 
 set -x gsy_emoji 💩 🐦 🚀 🐞 🎨 🍕 🐭 👽 ☕️ 🔬 💀 🐷 🐼 🐶 🐸 🐧 🐳 🍔 🍣 🍻 🔮 💰 💎 💾 💜 🍪 🌞 🌍 🐌 🐓 🍄
 function __pick_unicode
-  echo -ns (random choice $gsy_emoji)
+  if [ "$theme_show_unicode" = 'no' ]
+    echo ''
+  else 
+    echo -ns (random choice $gsy_emoji)
+  end
 end
 
 function __git_hash_info
-  echo -n (git log --pretty=format:"%h" -1 2> /dev/null) 
+  if [ "$theme_show_more_git" = 'no' ]
+    echo ''
+  else
+    echo -n (git log --pretty=format:"%h" -1 2> /dev/null)
+  end
 end

@@ -71,7 +71,11 @@ function fish_right_prompt -d 'bobthefish is all about the right prompt'
 end
 
 function __git_commit_info
-  set -l commit_info (git log --pretty=format:"%s" -1 2> /dev/null)
-  echo '"'(string sub $commit_info -l 20)'"'
+  if [ "$theme_show_more_git" = 'no' ]
+    echo ''
+  else
+    set -l commit_info (git log --pretty=format:"%s" -1 2> /dev/null)
+    echo '"'(string sub $commit_info -l 20)'"'
+  end
 end
  
