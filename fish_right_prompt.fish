@@ -6,7 +6,7 @@ function __bobthefish_cmd_duration -S -d 'Show command duration'
   [ -z "$CMD_DURATION" -o "$CMD_DURATION" -lt 100 ]; and return
 
   if [ "$CMD_DURATION" -lt 5000 ]
-    echo -ns $CMD_DURATION 'ms'
+    echo -ns 'in '$CMD_DURATION 'ms'
   else if [ "$CMD_DURATION" -lt 60000 ]
     __bobthefish_pretty_ms $CMD_DURATION s
   else if [ "$CMD_DURATION" -lt 3600000 ]
@@ -41,9 +41,11 @@ function __bobthefish_pretty_ms -S -a ms interval -d 'Millisecond formatting for
   switch $FISH_VERSION
     # Fish 2.3 and lower doesn't know about the -s argument to math.
     case 2.0.\* 2.1.\* 2.2.\* 2.3.\*
-      math "scale=$scale;$ms/$interval_ms" | string replace -r '\\.?0*$' $interval
+      set -l result (math "scale=$scale;$ms/$interval_ms" | string replace -r '\\.?0*$' $interval)
+      echo -ns 'in '$result
     case \*
-      math -s$scale "$ms/$interval_ms" | string replace -r '\\.?0*$' $interval
+      set -l result (math -s$scale "$ms/$interval_ms" | string replace -r '\\.?0*$' $interval)
+      echo -ns 'in '$result
   end
 end
 
@@ -64,8 +66,8 @@ function fish_right_prompt -d 'bobthefish is all about the right prompt'
 
   set_color $fish_color_autosuggestion
 
-  __git_commit_info
   __bobthefish_cmd_duration
+  __git_commit_info
   __bobthefish_timestamp
   set_color normal
 end
@@ -75,7 +77,7 @@ function __git_commit_info
     echo ''
   else
     set -l commit_info (git log --pretty=format:"%s" -1 2> /dev/null)
-    echo '"'(string sub $commit_info -l 20)'"'
+    echo ' "'(string sub $commit_info -l 20)'"'
   end
 end
- 
+
